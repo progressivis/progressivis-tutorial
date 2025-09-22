@@ -1,0 +1,33 @@
+[project]
+name = "progressivis-tutorial"
+version = "0.0.1"
+authors = [
+  { name="Jean-Daniel Fekete", email="jean-daniel.fekete@inria.fr" },
+]
+description = "Tutorial scripts and notebooks for learning ProgressiVis"
+readme = "README.md"
+requires-python = ">=3.13"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/progressivis/progressivis-tutorial"
+Issues = "https://github.com/progressivis/progressivis-tutorial/issues"
+
+[build-system]
+requires = [
+         "hatchling >= 1.26",
+         "progressivis",
+         "ipyprogressivis",
+         "jupytext",
+         "jupyterlab",
+]
+build-backend = "hatchling.build"
+
+[tool.jupytext]
+formats = "ipynb,py:percent"
+
