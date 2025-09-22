@@ -30,22 +30,24 @@ RESOLUTION=512
 # Function to filter out trips outside of NYC.
 
 # See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
-bounds = {
-    "top": 40.92,
-    "bottom": 40.49,
-    "left": -74.27,
-    "right": -73.68,
-}
+from dataclasses import dataclass
+@dataclass
+class Bounds:
+    top: float = 40.92
+    bottom: float = 40.49
+    left: float = -74.27
+    right: float = -73.68
+
+
+bounds = Bounds()
 
 # Since there are outliers in the files.
 def filter_(df):
     lon = df['pickup_longitude']
     lat = df['pickup_latitude']
     return df[
-        (lon > bounds["left"]) &
-        (lon < bounds["right"]) &
-        (lat > bounds["bottom"]) &
-        (lat < bounds["top"])
+        (lon > bounds.left) & (lon < bounds.right) &
+        (lat > bounds.bottom) & (lat < bounds.top)
     ]
 
 
