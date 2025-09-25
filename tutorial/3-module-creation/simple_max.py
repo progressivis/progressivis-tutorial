@@ -44,3 +44,35 @@ class SimpleMax(Module):
     def reset(self) -> None:
         if self.result is not None:
             self.result.fill(-np.inf)
+
+
+def _test_max():
+    from progressivis.core import aio
+    from progressivis import Print, RandomPTable, Scheduler
+    s = Scheduler()
+    random = RandomPTable(10, rows=10000, scheduler=s)
+    max_ = SimpleMax(name="max_" + str(hash(random)), scheduler=s)
+    max_.input[0] = random.output.result
+    pr = Print(proc=_terse, scheduler=s)
+    pr.input[0] = max_.output.result
+    aio.run(s.start())
+    assert random.result is not None
+    assert max_.result is not None
+    res1 = random.result.max()
+    res2 = max_.result
+    _compare(res1, res2)
+
+
+def _compare(res1, res2):
+    import numpy as np
+    v1 = np.array(list(res1.values()))
+    v2 = np.array(list(res2.values()))
+    assert np.allclose(v1, v2)
+
+
+def _terse(_):
+    print(".", end="", flush=True)
+
+
+if __name__ == "__main__":
+    _test_max()
