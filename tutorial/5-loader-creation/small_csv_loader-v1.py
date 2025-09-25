@@ -113,19 +113,36 @@ class SmallCSVLoaderV1(Module):
         return self._return_run_step(self.state_ready, steps_run=creates)
 
 
-def _test():
+def _test_1():
     from progressivis.core import aio
-    from progressivis import Scheduler, get_dataset, Sink, SimpleCSVLoader
+    from progressivis import Scheduler, get_dataset, Sink
     s = Scheduler()
     module = SmallCSVLoaderV1(get_dataset("bigfile"), header=None, scheduler=s)
-    # module = SimpleCSVLoader(get_dataset("bigfile"), header=None, scheduler=s)
     sink = Sink(name="sink", scheduler=s)
     sink.input.inp = module.output.result
     aio.run(s.start())
     assert module.result is not None
-    print(len(module.result))
     assert len(module.result) == 1_000_000
 
 
+def _test_2():
+    from progressivis.core import aio
+    from progressivis import Scheduler, Sink
+    from progressivis.core.utils import RandomBytesIO
+    s = Scheduler()
+    length = 30_000
+    module = SmallCSVLoaderV1(
+        RandomBytesIO(cols=30, rows=length),
+        header=None,
+        scheduler=s,
+    )
+    sink = Sink(name="sink", scheduler=s)
+    sink.input.inp = module.output.result
+    aio.run(s.start())
+    assert module.result is not None
+    assert len(module.result) == length
+
+
 if __name__ == "__main__":
-    _test()
+    _test_1()
+    _test_2()
