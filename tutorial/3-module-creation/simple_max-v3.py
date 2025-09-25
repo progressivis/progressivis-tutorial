@@ -1,14 +1,15 @@
-"""Module computing progressively the max of all the columns of a table.
+"""
+Module computing progressively the max of all the columns of a table.
 
-This implementation is simple and does not use internal decorators.
-It does support slot hints but not quality.
-
+This implementation adds internal decorators to reduce the code size.
+It does support slot hints and quality.
 """
 import numpy as np
-from typing import Any
+from typing import Any, Dict
 from progressivis import (Module, ReturnRunStep, PTable, PDict,
                           document, def_input, def_output)
 from progressivis.core.utils import indices_len, fix_loc
+from progressivis.core.decorators import process_slot, run_if_any
 
 
 def _max_func(x: Any, y: Any) -> Any:  # v2
@@ -24,35 +25,43 @@ def _max_func(x: Any, y: Any) -> Any:  # v2
 class SimpleMax(Module):
     def __init__(self, **kwds: Any) -> None:
         super().__init__(**kwds)
+        self.quality: Dict[str, float] = {}
         self.default_step_size = 10000
 
+    @process_slot("table", reset_cb="reset")  # v3
+    @run_if_any  # v3
     def run_step(
         self, run_number: int, step_size: int, quantum: float
     ) -> ReturnRunStep:
-        # Handle the changed input slots
-        table_slot = self.get_input_slot("table")
-        if table_slot.updated.any() or table_slot.deleted.any():
-            table_slot.reset()
-            table_slot.update(run_number)
-            self.reset()
-        # Extract the new chunk
-        indices = table_slot.created.next(length=step_size)
-        steps = indices_len(indices)
-        # The following helper function implements the slot hints
-        chunk = self.filter_slot_columns(table_slot, fix_loc(indices))  # v2
-        op = chunk.max(keepdims=False)  # v2
-        # Update the result
-        if self.result is None:
-            self.result = PDict(op)
-        else:
-            for k, v in self.result.items():
-                self.result[k] = _max_func(op[k], v)  # v2
-        # Return the next state using a helper method and number of steps
-        return self._return_run_step(self.next_state(table_slot), steps)  # v2
+        assert self.context  # v3
+        with self.context as ctx:  # v3
+            indices = ctx.table.created.next(length=step_size)  # v3
+            steps = indices_len(indices)  # v3
+            chunk = self.filter_slot_columns(ctx.table, fix_loc(indices))  # v3
+            op = chunk.max(keepdims=False)  # v3
+            if self.result is None:
+                self.result = PDict(op)
+            else:
+                for k, v in self.result.items():
+                    self.result[k] = _max_func(op[k], v)
+            return self._return_run_step(self.next_state(ctx.table), steps)
 
     def reset(self) -> None:
         if self.result is not None:
             self.result.fill(-np.inf)
+
+    def get_quality(self) -> Dict[str, float] | None:  # v3
+        if self.result is None:
+            return None
+        for key in self.result:
+            try:
+                # The quality is simply the value.
+                # It can only grow when improving, and
+                # should stabilize eventually.
+                self.quality["max_" + key] = float(self.result[key])
+            except ValueError:
+                pass
+        return self.quality
 
 
 def _test_max():
