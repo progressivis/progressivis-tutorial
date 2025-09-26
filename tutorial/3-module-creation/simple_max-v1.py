@@ -5,11 +5,12 @@ This implementation is the simplest and also does not use internal
 decorators to reduce the code size. It does not support slot hints
 either, and quality.
 """
-import numpy as np
 from typing import Any
-from progressivis import (Module, ReturnRunStep, PTable, PDict,
-                          document, def_input, def_output)
-from progressivis.core.utils import indices_len, fix_loc
+
+import numpy as np
+from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
+                          def_output, document)
+from progressivis.core.utils import fix_loc, indices_len
 
 
 @document
@@ -54,8 +55,8 @@ class SimpleMax(Module):
 
 
 def _test_max():
-    from progressivis.core import aio
     from progressivis import Print, RandomPTable, Scheduler
+    from progressivis.core import aio
     s = Scheduler()
     random = RandomPTable(3, rows=10000, scheduler=s)
     max_ = SimpleMax(name="max_" + str(hash(random)), scheduler=s)

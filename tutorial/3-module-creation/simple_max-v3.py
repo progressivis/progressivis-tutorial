@@ -4,12 +4,13 @@ Module computing progressively the max of all the columns of a table.
 This implementation adds internal decorators to reduce the code size.
 It does support slot hints and quality.
 """
-import numpy as np
 from typing import Any, Dict
-from progressivis import (Module, ReturnRunStep, PTable, PDict,
-                          document, def_input, def_output)
-from progressivis.core.utils import indices_len, fix_loc
+
+import numpy as np
+from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
+                          def_output, document)
 from progressivis.core.decorators import process_slot, run_if_any
+from progressivis.core.utils import fix_loc, indices_len
 
 
 def _max_func(x: Any, y: Any) -> Any:  # v2
@@ -65,8 +66,8 @@ class SimpleMax(Module):
 
 
 def _test_max():
-    from progressivis.core import aio
     from progressivis import Print, RandomPTable, Scheduler
+    from progressivis.core import aio
     s = Scheduler()
     random = RandomPTable(3, rows=10000, scheduler=s)
     max_ = SimpleMax(name="max_" + str(hash(random)), scheduler=s)
@@ -82,8 +83,8 @@ def _test_max():
 
 
 def _test_max_cols():
-    from progressivis.core import aio
     from progressivis import Print, RandomPTable, Scheduler
+    from progressivis.core import aio
     s = Scheduler()
     random = RandomPTable(10, rows=10000, scheduler=s)
     max_ = SimpleMax(name="max_" + str(hash(random)), scheduler=s)
