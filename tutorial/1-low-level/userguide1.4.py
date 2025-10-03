@@ -13,10 +13,12 @@
 #     name: python3
 # ---
 
+# %%
+
 # %% [markdown]
 # # Progressive Loading and Visualization
 #
-# This notebook shows the simplest code to download all the New York Yellow Taxi trips from 2015. They were all geolocated and the trip data is stored in multiple CSV files.
+# This notebook shows a simple code to download all the New York Yellow Taxi trips from 2015 along with a progress bar and quality feedback.
 # We visualize progressively the pickup locations (where people have been picked up by the taxis).
 #
 # First, we define a few constants, where the file is located, the desired resolution, and the url of the taxi file.
@@ -73,9 +75,10 @@ csv.scheduler.task_start()
 csv.scheduler
 
 # %%
-from progressivis.core.api import Module
-from ipyprogressivis.widgets import QualityVisualization
+import ipywidgets as ipw
 
+from progressivis import Module
+from ipyprogressivis.widgets import QualityVisualization
 
 def display_quality(mods, period: float = 3) -> QualityVisualization:
     qv = QualityVisualization()
@@ -97,6 +100,19 @@ def display_quality(mods, period: float = 3) -> QualityVisualization:
         mod.on_after_run(_after_run)
     return qv
 
+def display_progress_bar(mod: Module, period: float = 3) -> ipw.IntProgress:
+    prog_wg = ipw.IntProgress(
+        description="Progress", min=0, max=1000, layout={"width": "200"}
+    )
+
+    def _proc(m: Module, r: int) -> None:
+        val_, max_ = m.get_progress()
+        prog_wg.value = val_
+        if prog_wg.max != max_:
+            prog_wg.max = max_
+    mod.on_after_run(_proc) 
+    return prog_wg
+
 
 
 # %%
@@ -114,8 +130,11 @@ maxq = display_quality(max)
 maxq
 
 # %%
-csv.scheduler.task_stop()
-
-# %%
 maxq.width = "100%"
 maxq.height = 100
+
+# %%
+display_progress_bar(min)
+
+# %%
+csv.scheduler.task_stop()
