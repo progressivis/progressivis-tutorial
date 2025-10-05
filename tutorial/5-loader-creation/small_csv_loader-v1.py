@@ -11,10 +11,7 @@ from progressivis.core.utils import force_valid_id_columns
 from progressivis.table.table import PTable
 from progressivis.table.dshape import dshape_from_dataframe
 
-from typing import (
-    Dict,
-    Any,
-)
+from typing import (Dict, Any, Tuple)
 
 logger = logging.getLogger(__name__)
 
@@ -73,8 +70,8 @@ class SmallCSVLoaderV1(Module):
         else:
             self.result.append(df)
         return self._return_run_step(self.state_ready, steps_run=creates)
-        
-    def get_progress(self) -> Tuple[int, int]:
+
+    def get_progress_FAKE(self) -> Tuple[int, int]:
         input_size = self.parser._input._input_size
         if input_size == 0:
             return (0, 0)
@@ -83,7 +80,6 @@ class SmallCSVLoaderV1(Module):
         estimated_row_size = pos / length
         estimated_size = int(input_size / estimated_row_size)
         return (length, estimated_size)
-        
 
 
 def _test_1():
