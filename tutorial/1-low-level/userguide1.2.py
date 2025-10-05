@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: percent
 #       format_version: '1.3'
-#       jupytext_version: 1.14.7
+#       jupytext_version: 1.17.3
 #   kernelspec:
 #     display_name: Python 3 (ipykernel)
 #     language: python
@@ -72,6 +72,6 @@ csv.scheduler.task_start()
 csv.scheduler
 
 # %%
-# csv.scheduler.task_stop()
+csv.scheduler.task_stop()
 
 # %%

@@ -91,6 +91,4 @@ with csv.scheduler as dataflow:
 csv.scheduler
 
 # %%
-csv.scheduler.task_stop()
-
-# %%
+# csv.scheduler.task_stop()
