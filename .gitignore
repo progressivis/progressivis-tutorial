@@ -1,2 +1,4 @@
 *~
-*.ipynb
+tutorial/1-low-level/*.ipynb
+tutorial/4-visualization-creation/*.ipynb
+.ipynb_checkpoints
