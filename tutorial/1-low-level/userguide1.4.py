@@ -100,6 +100,7 @@ def display_quality(mods, period: float = 3) -> QualityVisualization:
         mod.on_after_run(_after_run)
     return qv
 
+
 def display_progress_bar(mod: Module, period: float = 3) -> ipw.IntProgress:
     prog_wg = ipw.IntProgress(
         description="Progress", min=0, max=1000, layout={"width": "200"}
