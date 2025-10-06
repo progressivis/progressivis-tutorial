@@ -43,7 +43,7 @@ bounds = Bounds()
 # %%
 from progressivis import (
     CSVLoader, Histogram2D, ConstDict, Heatmap, PDict,
-    BinningIndexND, RangeQuery2d, Variable
+    BinningIndexND, RangeQuery2D, Variable
 )
 import progressivis.core.aio as aio
 
@@ -58,7 +58,7 @@ index = BinningIndexND()
 # Creates one index per numeric column
 index.input.table = csv.output.result[col_x, col_y]
 # Create a querying module
-query = RangeQuery2d(column_x=col_x, column_y=col_y)
+query = RangeQuery2D(column_x=col_x, column_y=col_y)
 # Variable modules allow to dynamically modify their values; here, the query ranges
 var_min = Variable(name="var_min")
 var_max = Variable(name="var_max")
