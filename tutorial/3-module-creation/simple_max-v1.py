@@ -9,11 +9,10 @@ from typing import Any
 
 import numpy as np
 from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
-                          def_output, document)
+                          def_output)
 from progressivis.core.utils import fix_loc, indices_len
 
 
-@document
 @def_input("table", PTable, doc="The input PTable to process")
 @def_output("result", PDict, doc=("PDict with max value of each column"))
 class SimpleMax(Module):
