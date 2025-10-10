@@ -17,59 +17,78 @@
 # %% [markdown]
 # # Progressive Loading and Visualization
 #
-# This notebook shows the simplest code to download all the New York Yellow Taxi trips from 2015. They were all geolocated and the trip data is stored in multiple CSV files.
+# This notebook shows the simplest code to download and visualize all the New York Yellow Taxi trips from January 2015. 
+# The trip data is stored in multiple CSV files, containing geolocated taxi trips.
 # We visualize progressively the pickup locations (where people have been picked up by the taxis).
-#
-# First, we define a few constants, where the file is located and the desired resolution.
 
 # %%
-# We make sure the libraries are reloaded when modified
+# We make sure the libraries are reloaded when modified, and avoid warning messages
 # %load_ext autoreload
 # %autoreload 2
-
-# %%
 import warnings
 warnings.filterwarnings("ignore")
+
+# %%
+# Some constants we'll need: the data file to download and final image size
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 RESOLUTION=512
 
+# %% [markdown]
+# ## Create Modules
+# First, create the four modules we need.
+
 # %%
-from progressivis import (
-    CSVLoader,
-    Histogram2D,
-    Quantiles,
-    Heatmap
-)
+from progressivis import CSVLoader, Histogram2D, Quantiles, Heatmap
 
-# Create a csv loader filtering out data outside NYC
+# Create a CSVLoader module, a Quantile module, a Histogram2D module, and a Heatmap module.
+
+# The CSV Loader only loads two columns of interest here with the 'usecols' keyword.
 csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude'])
-
-# Create a Quantile module to get rid of the 3% outliers both sides
 quantiles = Quantiles()
-quantiles.input.table = csv.output.result
-# Create a module to compute the 2D histogram of the two columns specified
-# with the given resolution
+# This Histogram2D column will compute a 2D histogram from the 2 columns with a resolution
 histogram2d = Histogram2D('pickup_longitude', 'pickup_latitude', xbins=RESOLUTION, ybins=RESOLUTION)
-# Connect the module to the csv results and the min,max bounds to rescale
-histogram2d.input.table = csv.output.result
-histogram2d.input.min = quantiles.output.result[0.03]
-histogram2d.input.max = quantiles.output.result[0.97]
-# Create a module to create an heatmap image from the histogram2d
 heatmap = Heatmap()
-# Connect it to the histogram2d
+
+# %% [markdown]
+# ## Connect Modules
+#
+# Then, connect the modules.
+
+# %%
+# Now, connect the modules to create the Dataflow graph
+# Quantiles inputs a table and outputs the quantiles of all the numeric columns
+quantiles.input.table = csv.output.result 
+
+# Histogram inputs a table, the minimum values for the columns, and the maximum values.
+histogram2d.input.table = csv.output.result
+histogram2d.input.min = quantiles.output.result[0.03]  # 0.03 quantile
+histogram2d.input.max = quantiles.output.result[0.97]  # 0.97 quantile
+# Connect the Histogram2D to the Heatmap module
 heatmap.input.array = histogram2d.output.result
+
+# %% [markdown]
+# ## Display the Heatmap
 
 # %%
 heatmap.display_notebook()
 
+# %% [markdown]
+# ## Start the scheduler
+
 # %%
-# Start the scheduler
 csv.scheduler.task_start()
+
+# %% [markdown]
+# ## Show the modules
+# printing the scheduler shows all the modules and their states
 
 # %%
 csv.scheduler
 
-# %%
-# csv.scheduler.task_stop()
+# %% [markdown]
+# ## Stop the scheduler
+# To stop the scheduler, uncomment the next cell and run it
 
 # %%
+
+# csv.scheduler.task_stop()

@@ -14,79 +14,85 @@
 # ---
 
 # %% [markdown]
-# # Progressive Loading and Visualization
+# # Progressive Loading and Visualization with Issues
 #
-# This notebook shows the simplest code to download all the New York Yellow Taxi trips from 2015. They were all geolocated and the trip data is stored in multiple CSV files.
+# This notebook shows a simple code to download and visualize all the New York Yellow Taxi trips from January 2015. 
+# The trip data is stored in multiple CSV files, containing geolocated taxi trips.
 # We visualize progressively the pickup locations (where people have been picked up by the taxis).
-#
-# First, we define a few constants, where the file is located, the desired resolution, and the url of the taxi file.
+# Unfortunately, with big data, unexpected results can happen.
 
 # %%
+# We make sure the libraries are reloaded when modified, and avoid warning messages
+# %load_ext autoreload
+# %autoreload 2
+import warnings
+warnings.filterwarnings("ignore")
+
+# %%
+# Some constants we'll need: the data file to download and final image size
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 RESOLUTION=512
 
-
-# %%
-# Function to filter out trips outside of NYC.
-
-# See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
-from dataclasses import dataclass
-@dataclass
-class Bounds:
-    top: float = 40.92
-    bottom: float = 40.49
-    left: float = -74.27
-    right: float = -73.68
-
-
-bounds = Bounds()
-
-# Since there are outliers in the files.
-def filter_(df):
-    lon = df['pickup_longitude']
-    lat = df['pickup_latitude']
-    return df[
-        (lon > bounds.left) & (lon < bounds.right) &
-        (lat > bounds.bottom) & (lat < bounds.top)
-    ]
-
+# %% [markdown]
+# ## Create Modules
+# First, create the four modules we need.
 
 # %%
 from progressivis import CSVLoader, Histogram2D, Min, Max, Heatmap
 
-# Create a csv loader filtering out data outside NYC
-csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude']) #, filter_=filter_)
-# Create a module to compute the min value progressively
-min = Min()
-# Connect it to the output of the csv module
-min.input.table = csv.output.result
-# Create a module to compute the max value progressively
-max = Max()
-# Connect it to the output of the csv module
-max.input.table = csv.output.result
+# Create a CSVLoader module, a Min and Max module, a Histogram2D module, and a Heatmap module.
 
-# Create a module to compute the 2D histogram of the two columns specified
-# with the given resolution
+# The CSV Loader only loads two columns of interest here with the 'usecols' keyword.
+csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude'])
+min = Min()
+max = Max()
+# This Histogram2D column will compute a 2D histogram from the 2 columns with a resolution
 histogram2d = Histogram2D('pickup_longitude', 'pickup_latitude', xbins=RESOLUTION, ybins=RESOLUTION)
-# Connect the module to the csv results and the min,max bounds to rescale
+heatmap = Heatmap()
+
+
+# %% [markdown]
+# ## Connect Modules
+#
+# Then, connect the modules.
+
+# %%
+# Now, connect the modules to create the Dataflow graph
+# Min/Max input a table and output the min/max values of all the numeric columns
+min.input.table = csv.output.result
+max.input.table = csv.output.result
 histogram2d.input.table = csv.output.result
 histogram2d.input.min = min.output.result
 histogram2d.input.max = max.output.result
-# Create a module to create an heatmap image from the histogram2d
-heatmap = Heatmap()
-# Connect it to the histogram2d
+# Connect the Histogram2D to the Heatmap module
 heatmap.input.array = histogram2d.output.result
+
+# %% [markdown]
+# ## Display the Heatmap
+#
+# The displayed image only shows two small points instead of the revealing the map of Manhattan.
+# This is because a few taxi trips go to Florida and other far away locations with their meter on. The image is thus scaled down to show most of the US instead of Manhattan only.
 
 # %%
 heatmap.display_notebook()
-# Start the scheduler
+
+# %% [markdown]
+# ## Start the scheduler
+
+# %%
 csv.scheduler.task_start()
 
+# %% [markdown]
+# ## Show the modules
+# printing the scheduler shows all the modules and their states
+
 # %%
-# Show what runs
 csv.scheduler
 
-# %%
-# csv.scheduler.task_stop()
+# %% [markdown]
+# ## Stop the scheduler
+# To stop the scheduler, uncomment the next cell and run it
 
 # %%
+
+# csv.scheduler.task_stop()
