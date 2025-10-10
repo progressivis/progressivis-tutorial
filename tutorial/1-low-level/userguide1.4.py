@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     comment_magics: false
 #     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
@@ -13,66 +14,113 @@
 #     name: python3
 # ---
 
-# %%
-
 # %% [markdown]
 # # Progressive Loading and Visualization
 #
-# This notebook shows a simple code to download all the New York Yellow Taxi trips from 2015 along with a progress bar and quality feedback.
+# This notebook shows a simple code to download and visualize all the New York Yellow Taxi trips from January 2015, knowing the bounds of NYC.
+# The trip data is stored in multiple CSV files, containing geolocated taxi trips.
 # We visualize progressively the pickup locations (where people have been picked up by the taxis).
-#
-# First, we define a few constants, where the file is located, the desired resolution, and the url of the taxi file.
 
 # %%
+# We make sure the libraries are reloaded when modified, and avoid warning messages
+# %load_ext autoreload
+# %autoreload 2
+import warnings
+warnings.filterwarnings("ignore")
+
+# %%
+# Some constants we'll need: the data file to download and final image size
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 RESOLUTION=512
 
-
-# %%
-# Function to filter out trips outside of NYC.
-
+# %% [markdown]
+# ## Define NYC Bounds
+# If we know the bounds, this will simplify the code.
 # See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
-bounds = {
-    "top": 40.92,
-    "bottom": 40.49,
-    "left": -74.27,
-    "right": -73.68,
-}
 
 # %%
-from progressivis import CSVLoader, Histogram2D, Min, Max, Heatmap
+from dataclasses import dataclass
+@dataclass
+class Bounds:
+    top: float = 40.92
+    bottom: float = 40.49
+    left: float = -74.27
+    right: float = -73.68
 
-# Create a csv loader filtering out data outside NYC
-csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude']) #, filter_=filter_)
-# Create a module to compute the min value progressively
-min = Min()
-# Connect it to the output of the csv module
-min.input.table = csv.output.result
-# Create a module to compute the max value progressively
-max = Max()
-# Connect it to the output of the csv module
-max.input.table = csv.output.result
+bounds = Bounds()
 
-# Create a module to compute the 2D histogram of the two columns specified
-# with the given resolution
+# %% [markdown]
+# ## Create Modules
+# First, create the four modules we need.
+
+# %%
+from progressivis import CSVLoader, Histogram2D, ConstDict, Heatmap, PDict
+
+# Create a CSVLoader module, two min/max constant modules, a Histogram2D module, and a Heatmap module.
+
+csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude'])
+min = ConstDict(PDict({'pickup_longitude': bounds.left, 'pickup_latitude': bounds.bottom}))
+max = ConstDict(PDict({'pickup_longitude': bounds.right, 'pickup_latitude': bounds.top}))
 histogram2d = Histogram2D('pickup_longitude', 'pickup_latitude', xbins=RESOLUTION, ybins=RESOLUTION)
-# Connect the module to the csv results and the min,max bounds to rescale
+heatmap = Heatmap()
+
+# %% [markdown]
+# ## Connect Modules
+#
+# Then, connect the modules.
+
+# %%
 histogram2d.input.table = csv.output.result
 histogram2d.input.min = min.output.result
 histogram2d.input.max = max.output.result
-# Create a module to create an heatmap image from the histogram2d
-heatmap = Heatmap()
-# Connect it to the histogram2d
 heatmap.input.array = histogram2d.output.result
+
+# %% [markdown]
+# ## Display the Heatmap
 
 # %%
 heatmap.display_notebook()
-# Start the scheduler
-csv.scheduler.task_start()
+
+# %% [markdown]
+# ## Start the scheduler
 
 # %%
-# Show what runs
+csv.scheduler.task_start()
+
+# %% [markdown]
+# ## Show the modules
+# printing the scheduler shows all the modules and their states
+
+# %%
 csv.scheduler
+
+# %% [markdown]
+# ## Module Quality
+# Most modules performing a computation can return a "quality" measure.
+# What is a "quality" is a long question, but for ProgressiVis, it is a floating point number;
+# the higher, the better. A module's output can only be trusted if its quality is stable.
+# Unfortunately, there are cases when the quality will remain stable for a while and change again,
+# but we'll ignore them for now.
+#
+# For the `Min` module, the quality is simply the negative value of the columns. The higher, the better, and when they stabilize, the module becomes trustworthy. Here, `min` is a constant so it does not return a quality.
+#
+# The `Histogram2D` module has a more complex quality based on the difference between the array values between runs, 0 being best.
+#
+
+# %%
+histogram2d.get_quality()
+
+# %% [markdown]
+# ## Module Progress
+# Module can return their progress, a pair of two values: (current, maximum).
+# Both can vary each time the module is run, since the maximum is usually an estimate.
+
+# %%
+min.get_progress()
+
+# %% [markdown]
+# ## Visualizing the Quality and Progress Bar
+# We define two functions to monitor the quality and progress here.
 
 # %%
 import ipywidgets as ipw
@@ -115,27 +163,29 @@ def display_progress_bar(mod: Module, period: float = 3) -> ipw.IntProgress:
     return prog_wg
 
 
+# %% [markdown]
+# ## Monitoring the Quality
+#
+# The quality can be visualized when the module runs, with a controlled updated every 3s to avoid flooding the notebook and the user.
 
 # %%
-min.get_quality()
+heatq = display_quality(heatmap)
+heatq
+
+# %% [markdown]
+# The quality widget can be manipulated dynamically to change its size according to, e.g., its level of interest.
 
 # %%
-min.timer()
+heatq.width = "100%"
+heatq.height = 100
 
 # %%
-minq = display_quality(min)
-minq
+display_progress_bar(heatmap)
+
+# %% [markdown]
+# ## Stop the scheduler
+# To stop the scheduler, uncomment the next cell and run it
 
 # %%
-maxq = display_quality(max)
-maxq
 
-# %%
-maxq.width = "100%"
-maxq.height = 100
-
-# %%
-display_progress_bar(min)
-
-# %%
 # csv.scheduler.task_stop()

@@ -1,6 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
+#     comment_magics: false
 #     formats: ipynb,py:percent
 #     text_representation:
 #       extension: .py
@@ -50,14 +51,14 @@ bounds = Bounds()
 
 # %% [markdown]
 # ## Load the Data
-# First, download the data
+# First, download the data.
+# Countrary to ProgressiVis, it will take a long time before you see anything.
 
 # %%
 import pandas as pd
 
-
 # Create a csv loader filtering out data outside NYC
-# %time
+# %time \
 df = pd.read_csv(LARGE_TAXI_FILE, index_col=False, usecols=['pickup_longitude', 'pickup_latitude'])
 
 
@@ -89,3 +90,5 @@ except:
 plt.hist2d(df.pickup_longitude, df.pickup_latitude, bins=(RESOLUTION, RESOLUTION), norm="symlog", cmap=plt.cm.Greys_r)
 plt.colorbar()
 plt.show()
+
+# %%
