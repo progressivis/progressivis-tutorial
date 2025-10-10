@@ -16,20 +16,28 @@
 # %% [markdown]
 # # Non Progressive Loading and Visualization
 #
-# This notebook shows the simplest code to download all the New York Yellow Taxi trips from 2015. They were all geolocated and the trip data is stored in multiple CSV files.
-# We visualize progressively the pickup locations (where people have been picked up by the taxis).
-#
-# First, we define a few constants, where the file is located, the desired resolution, and the url of the taxi file.
+# This notebook shows the simplest code to download and visualize all the New York Yellow Taxi trips from January 2015. 
+# The trip data is stored in multiple CSV files, containing geolocated taxi trips.
+# We visualize the pickup locations, but not progressively (where people have been picked up by the taxis).
 
 # %%
+# We make sure the libraries are reloaded when modified, and avoid warning messages
+# %load_ext autoreload
+# %autoreload 2
 import warnings
 warnings.filterwarnings("ignore")
+
+# %%
+# Some constants we'll need: the data file to download and final image size
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 RESOLUTION=512
 
+# %% [markdown]
+# ## Define NYC Bounds
+# If we know the bounds, this will simplify the code.
+# See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
 
 # %%
-# See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
 from dataclasses import dataclass
 @dataclass
 class Bounds:
@@ -40,6 +48,9 @@ class Bounds:
 
 bounds = Bounds()
 
+# %% [markdown]
+# ## Load the Data
+# First, download the data
 
 # %%
 import pandas as pd
@@ -65,10 +76,16 @@ def filter_(df):
 df = filter_(df)
 
 
-# %%
-import matplotlib.pyplot as plt
+# %% [markdown]
+# ## Visualize the data
 
 # %%
-plt.hist2d(df.pickup_longitude, df.pickup_latitude, bins=(512, 512), norm="symlog", cmap=plt.cm.Greys_r)
+try:
+    import matplotlib.pyplot as plt
+except:
+    print("Install matplotlib with: pip install matplotlib")
+
+# %%
+plt.hist2d(df.pickup_longitude, df.pickup_latitude, bins=(RESOLUTION, RESOLUTION), norm="symlog", cmap=plt.cm.Greys_r)
 plt.colorbar()
 plt.show()
