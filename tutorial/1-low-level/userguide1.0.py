@@ -63,7 +63,6 @@ quantiles.input.table = csv.output.result
 histogram2d.input.table = csv.output.result
 histogram2d.input.min = quantiles.output.result[0.03]  # 0.03 quantile
 histogram2d.input.max = quantiles.output.result[0.97]  # 0.97 quantile
-# Connect the Histogram2D to the Heatmap module
 heatmap.input.array = histogram2d.output.result
 
 # %% [markdown]
