@@ -21,14 +21,23 @@
 # First, we define a few constants, where the file is located, the desired resolution, and the url of the taxi file.
 
 # %%
+# We make sure the libraries are reloaded when modified, and avoid warning messages
+# %load_ext autoreload
+# %autoreload 2
 import warnings
 warnings.filterwarnings("ignore")
+
+# %%
+# Some constants we'll need: the data file to download and final image size
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 RESOLUTION=512
 
+# %% [markdown]
+# ## Define NYC Bounds
+# If we know the bounds, this will simplify the code.
+# See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
 
 # %%
-# See https://en.wikipedia.org/wiki/Module:Location_map/data/USA_New_York_City
 from dataclasses import dataclass
 @dataclass
 class Bounds:
@@ -39,6 +48,9 @@ class Bounds:
 
 bounds = Bounds()
 
+# %% [markdown]
+# ## Create Modules
+# First, create the four modules we need.
 
 # %%
 from progressivis import (
@@ -49,35 +61,38 @@ import progressivis.core.aio as aio
 
 col_x = "pickup_longitude"
 col_y = "pickup_latitude"
-bnds_min = PDict({col_x: bounds.left, col_y: bounds.bottom})
-bnds_max = PDict({col_x: bounds.right, col_y: bounds.top})
-# Create a csv loader for the taxi data file
+
 csv = CSVLoader(LARGE_TAXI_FILE, usecols=[col_x, col_y])
 # Create an indexing module on the csv loader output columns
 index = BinningIndexND()
-# Creates one index per numeric column
-index.input.table = csv.output.result[col_x, col_y]
 # Create a querying module
 query = RangeQuery2D(column_x=col_x, column_y=col_y)
 # Variable modules allow to dynamically modify their values; here, the query ranges
 var_min = Variable(name="var_min")
 var_max = Variable(name="var_max")
+histogram2d = Histogram2D(col_x, col_y, xbins=RESOLUTION, ybins=RESOLUTION)
+heatmap = Heatmap()
+
+# %% [markdown]
+# ## Connect Modules
+#
+# Then, connect the modules.
+
+# %%
+# Creates one index per numeric column
+index.input.table = csv.output.result[col_x, col_y]
 query.input.lower = var_min.output.result
 query.input.upper = var_max.output.result
 query.input.index = index.output.result
 query.input.min = index.output.min_out
 query.input.max = index.output.max_out
-# Create a module to compute the 2D histogram of the two columns specified
-# with the given resolution
-histogram2d = Histogram2D(col_x, col_y, xbins=RESOLUTION, ybins=RESOLUTION)
-# Connect the module to the csv results and the min,max bounds to rescale
 histogram2d.input.table = query.output.result
 histogram2d.input.min = query.output.min
 histogram2d.input.max = query.output.max
-# Create a module to create an heatmap image from the histogram2d
-heatmap = Heatmap()
-# Connect it to the histogram2d
 heatmap.input.array = histogram2d.output.result
+
+# %% [markdown]
+# ## Visualize the Graph
 
 # %%
 try:
@@ -88,14 +103,32 @@ try:
 except ImportError:
     pass
 
+# %% [markdown]
+# ## Display the Heatmap
 
 # %%
 heatmap.display_notebook()
-# Start the scheduler
+# %% [markdown]
+# ## Start the scheduler
+
+# %%
 csv.scheduler.task_start()
+
+# %% [markdown]
+# ## Initialize the Variable values
+
+# %%
+# Give it a bit of time to start
 await aio.sleep(1)
+
+bnds_min = PDict({col_x: bounds.left, col_y: bounds.bottom})
+bnds_max = PDict({col_x: bounds.right, col_y: bounds.top})
+
 await var_min.from_input(bnds_min)
 await var_max.from_input(bnds_max)
+
+# %% [markdown]
+# ## Create the Widgets
 
 # %%
 import ipywidgets as widgets
@@ -124,7 +157,6 @@ lat_slider = widgets.FloatRangeSlider(
     readout_format='.1f',
 )
 
-
 def observer(_):
     async def _coro():
         long_min, long_max = long_slider.value
@@ -138,11 +170,18 @@ long_slider.observe(observer, "value")
 lat_slider.observe(observer, "value")
 widgets.VBox([long_slider, lat_slider])
 
+# %% [markdown]
+# ## Show the modules
+# printing the scheduler shows all the modules and their states
+
 # %%
 # Show what runs
 csv.scheduler
 
+# %% [markdown]
+# ## Stop the scheduler
+# To stop the scheduler, uncomment the next cell and run it
+
 # %%
 # csv.scheduler.task_stop()
 
-# %%
