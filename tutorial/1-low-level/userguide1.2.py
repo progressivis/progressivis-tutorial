@@ -56,12 +56,14 @@ bounds = Bounds()
 # %%
 from progressivis import CSVLoader, Histogram2D, ConstDict, Heatmap, PDict
 
-# Create a CSVLoader module, two min/max constant modules, a Histogram2D module, and a Heatmap module.
+col_x = "pickup_longitude"
+col_y = "pickup_latitude"
 
-csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude'])
-min = ConstDict(PDict({'pickup_longitude': bounds.left, 'pickup_latitude': bounds.bottom}))
-max = ConstDict(PDict({'pickup_longitude': bounds.right, 'pickup_latitude': bounds.top}))
-histogram2d = Histogram2D('pickup_longitude', 'pickup_latitude', xbins=RESOLUTION, ybins=RESOLUTION)
+csv = CSVLoader(LARGE_TAXI_FILE, usecols=[col_x, col_y])
+min = ConstDict(PDict({col_x: bounds.left, col_y: bounds.bottom}))
+max = ConstDict(PDict({col_x: bounds.right, col_y: bounds.top}))
+histogram2d = Histogram2D(col_x, col_y,
+                          xbins=RESOLUTION, ybins=RESOLUTION)
 heatmap = Heatmap()
 
 # %% [markdown]

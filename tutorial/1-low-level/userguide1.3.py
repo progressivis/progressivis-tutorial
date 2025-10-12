@@ -55,7 +55,7 @@ bounds = Bounds()
 
 # %%
 from progressivis import (
-    CSVLoader, Histogram2D, ConstDict, Heatmap, PDict,
+    CSVLoader, Histogram2D,  Heatmap, PDict,
     BinningIndexND, RangeQuery2D, Variable
 )
 import progressivis.core.aio as aio

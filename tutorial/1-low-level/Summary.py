@@ -32,24 +32,35 @@ max_.input[0] = random.output.result["_1", "_2", "_3"]
 pr = Print(proc=_terse)
 pr.input[0] = max_.output.result
 
+# %% [markdown]
+# # Visualize the Dataflow Graph
+# The Dataflow graph of a program can be visualized as follows, provided that the "graphviz" python package is installed, and that the "graphviz" program is installed as well.
+# On a Linux and MacOS system with anaconda installed, you can install them with:
+# ```
+# conda install graphviz
+# pip install graphviz
+# ```
+
 # %%
 try:
     import graphviz
     src = random.scheduler.to_graphviz()
     gvz = graphviz.Source(src)
     display(gvz)
-except ImportError as e:
-    print(e)
+except Exception as e:
+    print("Exception trying to visualize the Dataflow graph:", e)
     pass
 
-# %%
+# %% [markdown]
+# # Running a ProgressiVis Program
+# If the program is not using any graphical output, it can be run as a standard python program:
+# ```
+# python Summary.py
+# ```
 
 # %%
-from progressivis.core import aio
-
-try:  # Run in plain Python
-    aio.run(random.scheduler.start())
-except RuntimeError:  # Run in the notebook
+if __name__ != '__main__':  # run outside a notbebook
     random.scheduler.task_start()
-
-# %%
+else:
+    from progressivis.core import aio
+    aio.run(random.scheduler.start())

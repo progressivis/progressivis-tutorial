@@ -83,7 +83,7 @@ df = filter_(df)
 # %%
 try:
     import matplotlib.pyplot as plt
-except:
+except Exception:
     print("Install matplotlib with: pip install matplotlib")
 
 # %%
