@@ -6,7 +6,7 @@ from progressivis import ProgressiveError
 from progressivis.core.docstrings import RESULT_DOC
 from progressivis.utils.inspect import filter_kwds
 from progressivis.core.module import Module
-from progressivis.core.module import ReturnRunStep, def_output, document
+from progressivis.core.module import ReturnRunStep, def_output
 from progressivis.core.utils import force_valid_id_columns
 from progressivis.table.table import PTable
 from progressivis.table.dshape import dshape_from_dataframe
@@ -16,7 +16,6 @@ from typing import (Dict, Any, Tuple)
 logger = logging.getLogger(__name__)
 
 
-@document
 @def_output("result", PTable, doc=RESULT_DOC)
 class SmallCSVLoaderV1(Module):
     def __init__(self, filepath_or_buffer: Any, **kwds: Any) -> None:
@@ -61,12 +60,12 @@ class SmallCSVLoaderV1(Module):
         self._rows_read += creates
         force_valid_id_columns(df)  # fix column names
         if self.result is None:  # create the PTable
-            table_params: Dict[str, Any] = dict(name=self.name)
-            table_params["name"] = self.generate_table_name("table")
-            table_params["dshape"] = dshape_from_dataframe(df)  # infer types
-            table_params["data"] = df
-            table_params["create"] = True
-            self.result = PTable(**table_params)
+            self.result = PTable(
+                name=self.generate_table_name("table"),
+                dshape=dshape_from_dataframe(df),  # infer types
+                data=df,
+                create=True
+            )
         else:
             self.result.append(df)
         return self._return_run_step(self.state_ready, steps_run=creates)

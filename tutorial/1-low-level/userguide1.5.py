@@ -20,12 +20,12 @@
 # This notebook shows how a running ProgressiVis program can be modified.
 # A simple program is created that loads a CSV file, compute the minumum, and prints a dot for each chunk.
 # Then, the program is modified; a max module is added after the CSV module and a slash is printed at each chunk.
-# Finally, the initial min module is deleted, triggering the deletion of the first print a **collateral dammage**.
+# Finally, the initial min module is deleted, triggering the deletion of the first Tick a **collateral dammage**.
 
 # %%
 from progressivis import (
     CSVLoader,
-    Print,
+    Tick,
     Min, Max,
 )
 
@@ -34,24 +34,16 @@ import warnings
 warnings.filterwarnings("ignore")
 LARGE_TAXI_FILE = "https://www.aviz.fr/nyc-taxi/yellow_tripdata_2015-01.csv.bz2"
 
-# prints a dot at each chunk (run_step)
-def terse(x):
-    print(".", end="", flush=True)
-
-# prints a slash at each chunk
-def terse2(x):
-    print("/", end="", flush=True)
-
 
 # %% [markdown]
 # ## Creates the initial program
 #
-# The print module calls the function `terse` at each chunk, showing a dot when run.
+# The Tick module shows the string tick parameter each time it is run.
 
 # %%
 csv = CSVLoader(LARGE_TAXI_FILE, usecols=['pickup_longitude', 'pickup_latitude'])
 m = Min(name="min")
-prt = Print(proc=terse)
+prt = Tick(tick='.')
 m.input.table = csv.output.result
 prt.input.df = m.output.result
 
@@ -70,7 +62,7 @@ csv.scheduler
 # %%
 with csv.scheduler as dataflow:
     M = Max(name="max")
-    prt2 = Print(proc=terse2)
+    prt2 = Tick(tick='/')
     M.input.table = csv.output.result
     prt2.input.df = M.output.result
 
