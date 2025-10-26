@@ -2,14 +2,15 @@
 
 This implementation is simple and does not use internal decorators.
 It does support slot hints but not quality.
-
 """
 from typing import Any
 
 import numpy as np
-from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
-                          def_output)
-from progressivis.core.utils import fix_loc, indices_len
+from progressivis import (
+    Module, ReturnRunStep, PTable, PDict,
+    def_input, def_output
+)
+from progressivis.core.utils import indices_len, fix_loc
 
 
 def _max_func(x: Any, y: Any) -> Any:  # v2
@@ -25,6 +26,10 @@ class SimpleMax(Module):
     def __init__(self, **kwds: Any) -> None:
         super().__init__(**kwds)
         self.default_step_size = 10000
+
+    def reset(self) -> None:
+        if self.result is not None:
+            self.result.fill(-np.inf)
 
     def run_step(
         self, run_number: int, step_size: int, quantum: float
@@ -49,10 +54,6 @@ class SimpleMax(Module):
                 self.result[k] = _max_func(op[k], v)  # v2
         # Return the next state using a helper method and number of steps
         return self._return_run_step(self.next_state(table_slot), steps)  # v2
-
-    def reset(self) -> None:
-        if self.result is not None:
-            self.result.fill(-np.inf)
 
 
 def _test_max():

@@ -6,11 +6,12 @@ decorators to reduce the code size. It does not support slot hints
 either, and quality.
 """
 from typing import Any
-
 import numpy as np
-from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
-                          def_output)
-from progressivis.core.utils import fix_loc, indices_len
+from progressivis import (
+    Module, ReturnRunStep, PTable, PDict,
+    def_input, def_output
+)
+from progressivis.core.utils import indices_len, fix_loc
 
 
 @def_input("table", PTable, doc="The input PTable to process")
@@ -19,6 +20,10 @@ class SimpleMax(Module):
     def __init__(self, **kwds: Any) -> None:
         super().__init__(**kwds)
         self.default_step_size = 10000
+
+    def reset(self) -> None:
+        if self.result is not None:
+            self.result.fill(-np.inf)
 
     def run_step(
         self, run_number: int, step_size: int, quantum: float
@@ -47,10 +52,6 @@ class SimpleMax(Module):
         else:
             next_state = Module.state_blocked
         return self._return_run_step(next_state, steps)
-
-    def reset(self) -> None:
-        if self.result is not None:
-            self.result.fill(-np.inf)
 
 
 def _test_max():

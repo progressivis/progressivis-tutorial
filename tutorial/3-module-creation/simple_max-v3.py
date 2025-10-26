@@ -5,12 +5,15 @@ This implementation adds internal decorators to reduce the code size.
 It does support slot hints and quality.
 """
 from typing import Any, Dict
-
 import numpy as np
-from progressivis import (Module, PDict, PTable, ReturnRunStep, def_input,
-                          def_output)
-from progressivis.core.decorators import process_slot, run_if_any
-from progressivis.core.utils import fix_loc, indices_len
+from progressivis import (
+    Module, ReturnRunStep, PTable, PDict,
+    def_input, def_output
+)
+from progressivis.core.decorators import ( # v3
+    process_slot, run_if_any
+)
+from progressivis.core.utils import indices_len, fix_loc
 
 
 def _max_func(x: Any, y: Any) -> Any:  # v2
@@ -25,8 +28,12 @@ def _max_func(x: Any, y: Any) -> Any:  # v2
 class SimpleMax(Module):
     def __init__(self, **kwds: Any) -> None:
         super().__init__(**kwds)
-        self.quality: Dict[str, float] = {}
         self.default_step_size = 10000
+        self.quality: Dict[str, float] = {}  # v3
+
+    def reset(self) -> None:
+        if self.result is not None:
+            self.result.fill(-np.inf)
 
     @process_slot("table", reset_cb="reset")  # v3
     @run_if_any  # v3
@@ -36,19 +43,15 @@ class SimpleMax(Module):
         assert self.context  # v3
         with self.context as ctx:  # v3
             indices = ctx.table.created.next(length=step_size)  # v3
-            steps = indices_len(indices)  # v3
+            steps = indices_len(indices) 
             chunk = self.filter_slot_columns(ctx.table, fix_loc(indices))  # v3
-            op = chunk.max(keepdims=False)  # v3
+            op = chunk.max(keepdims=False)
             if self.result is None:
                 self.result = PDict(op)
             else:
                 for k, v in self.result.items():
                     self.result[k] = _max_func(op[k], v)
-            return self._return_run_step(self.next_state(ctx.table), steps)
-
-    def reset(self) -> None:
-        if self.result is not None:
-            self.result.fill(-np.inf)
+            return self._return_run_step(self.next_state(ctx.table), steps)  # v3
 
     def get_quality(self) -> Dict[str, float] | None:  # v3
         if self.result is None:
