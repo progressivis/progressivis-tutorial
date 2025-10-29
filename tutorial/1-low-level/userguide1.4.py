@@ -116,7 +116,7 @@ histogram2d.get_quality()
 # Both can vary each time the module is run, since the maximum is usually an estimate.
 
 # %%
-min.get_progress()
+csv.get_progress()
 
 # %% [markdown]
 # ## Visualizing the Quality and Progress Bar
@@ -126,7 +126,9 @@ min.get_progress()
 import ipywidgets as ipw
 
 from progressivis import Module
-from ipyprogressivis.widgets import QualityVisualization
+from ipyprogressivis.widgets.quality_visualization import (
+    QualityVisualization
+)
 
 def display_quality(mods, period: float = 3) -> QualityVisualization:
     qv = QualityVisualization()
@@ -169,7 +171,7 @@ def display_progress_bar(mod: Module, period: float = 3) -> ipw.IntProgress:
 # The quality can be visualized when the module runs, with a controlled updated every 3s to avoid flooding the notebook and the user.
 
 # %%
-heatq = display_quality(heatmap)
+heatq = display_quality(histogram2d)
 heatq
 
 # %% [markdown]

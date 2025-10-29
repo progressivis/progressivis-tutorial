@@ -169,7 +169,14 @@ def observer(_):
 
 long_slider.observe(observer, "value")
 lat_slider.observe(observer, "value")
-widgets.VBox([long_slider, lat_slider])
+sliders = widgets.VBox([long_slider, lat_slider])
+
+try:
+    from sidecar import Sidecar
+    with Sidecar():
+        display(sliders)
+except:
+    display(sliders)
 
 # %% [markdown]
 # ## Show the modules

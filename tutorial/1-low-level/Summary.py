@@ -37,7 +37,7 @@ pr.input[0] = max_.output.result
 # The Dataflow graph of a program can be visualized as follows, provided that the "graphviz" python package is installed, and that the "graphviz" program is installed as well.
 # On a Linux and MacOS system with anaconda installed, you can install them with:
 # ```
-# conda install graphviz
+# conda install blas=1 graphviz
 # pip install graphviz
 # ```
 
@@ -60,7 +60,9 @@ except Exception as e:
 
 # %%
 if __name__ != '__main__':  # run outside a notbebook
+    # Works in a notebook
     random.scheduler.task_start()
 else:
+    # Works in a command line application
     from progressivis.core import aio
     aio.run(random.scheduler.start())
