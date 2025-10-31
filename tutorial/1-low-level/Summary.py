@@ -48,7 +48,7 @@ try:
     gvz = graphviz.Source(src)
     display(gvz)
 except Exception as e:
-    print("Exception trying to visualize the Dataflow graph:", e)
+    print("Exception caught (expected) trying to visualize the Dataflow graph:", e)
     pass
 
 # %% [markdown]
@@ -59,7 +59,13 @@ except Exception as e:
 # ```
 
 # %%
-random.scheduler.task_start()
-# In a command line application, run it like this:
-# from progressivis.core import aio
-# aio.run(random.scheduler.start())
+from progressivis.core.utils import is_notebook
+
+if is_notebook():
+    # Works in a notebook
+    random.scheduler.task_start()
+else:
+    # Works in a command line application
+    from progressivis.core import aio
+    aio.run(random.scheduler.start())
+
