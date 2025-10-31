@@ -70,6 +70,7 @@ heatmap.input.array = histogram2d.output.result
 # ## Display the Heatmap
 
 # %%
+# Nothing will be shown at this stage
 heatmap.display_notebook()
 
 # %% [markdown]

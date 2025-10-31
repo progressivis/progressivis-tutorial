@@ -59,10 +59,7 @@ except Exception as e:
 # ```
 
 # %%
-if __name__ != '__main__':  # run outside a notbebook
-    # Works in a notebook
-    random.scheduler.task_start()
-else:
-    # Works in a command line application
-    from progressivis.core import aio
-    aio.run(random.scheduler.start())
+random.scheduler.task_start()
+# In a command line application, run it like this:
+# from progressivis.core import aio
+# aio.run(random.scheduler.start())
